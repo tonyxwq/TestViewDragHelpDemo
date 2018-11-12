@@ -1,15 +1,21 @@
 package com.rx.testviewdraghelpdemo;
 
+import android.animation.TimeInterpolator;
 import android.content.Context;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AnticipateOvershootInterpolator;
+import android.view.animation.CycleInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.OvershootInterpolator;
 
-import java.util.logging.Handler;
 
 /**
  * Author:XWQ
@@ -166,7 +172,10 @@ public class ViewGragHelpGroup extends ViewGroup
             public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
             {
                 super.onViewPositionChanged(changedView, left, top, dx, dy);
+                tempDistance = tempDistance + dy;
                 //1.计算view移动的百分比
+                //Log.d("data","================"+top);
+                //Log.d("data", "=====================" + tempDistance + "==============================" + changedView.getMeasuredHeight());
                 float fraction = changedView.getLeft() * 1f / (getMeasuredWidth() - changedView.getMeasuredWidth());
                 scrollDistance = Math.abs(changedView.getTop());
                 if (!isScreen)
@@ -175,22 +184,26 @@ public class ViewGragHelpGroup extends ViewGroup
                     {
                         isScreen = false;
                         isReturn = true;
-                        mView.animate().translationY(getMeasuredHeight()).alphaBy(1.0f).setDuration(200).start();
+                        mView.animate().translationYBy(getMeasuredHeight()).alpha(1.0f).setDuration(300).start();
                         new android.os.Handler().postDelayed(new Runnable()
                         {
                             @Override
                             public void run()
                             {
                                 removeView(mView);
+                                tempDistance = 0;
                                 requestLayout();
                                 isReturn = false;
                             }
-                        }, 200);
+                        }, 300);
                     }
                 }
             }
         });
     }
+
+
+    private int tempDistance;
 
     /**
      * 执行伴随动画
@@ -216,6 +229,12 @@ public class ViewGragHelpGroup extends ViewGroup
         measureChildren(widthMeasureSpec, heightMeasureSpec);
     }
 
+       /* ===0.9
+        11-12 14:04:40.488 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============0.95555556
+        11-12 14:04:40.506 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.0111111
+        11-12 14:04:40.510 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.0666666
+        11-12 14:04:40.514 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.1222222*/
+
     @Override
     protected void onLayout(boolean change, int left, int top, int right, int button)
     {
@@ -223,10 +242,11 @@ public class ViewGragHelpGroup extends ViewGroup
         for (int i = 0; i < getChildCount(); i++)
         {
             View childView = getChildAt(i);
-            float scalex = (((i + index) * 1.0f) / count + baseScale);
+            float scalex = 0;
+            scalex = (((i + index) * 1.0f) / count + baseScale);
+            childView.animate().scaleX(scalex).translationY(-index*itemBaseDistance).setDuration(200).setInterpolator(new LinearInterpolator()).start();
+
             childView.layout(0, (beasDistance - i * itemBaseDistance), childView.getMeasuredWidth(), childView.getMeasuredHeight() + (beasDistance - i * itemBaseDistance));
-            childView.setScaleX(scalex);
-            //childView.animate().scaleX(scalex).setDuration(50).start();
             currentPostion = i;
         }
     }
