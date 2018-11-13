@@ -10,11 +10,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AnticipateInterpolator;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.view.animation.BounceInterpolator;
 import android.view.animation.CycleInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.OvershootInterpolator;
+
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringSystem;
 
 
 /**
@@ -41,7 +49,13 @@ public class ViewGragHelpGroup extends ViewGroup
 
     private int childCount;
 
-    private View mView;
+    SpringSystem springSystem;
+
+    Spring spring;
+
+    private View tempView;
+
+    //private View mView;
 
     private boolean isReturn = false;
 
@@ -57,13 +71,26 @@ public class ViewGragHelpGroup extends ViewGroup
     public ViewGragHelpGroup(Context context, AttributeSet attrs)
     {
         super(context, attrs);
+        // 首先创建一个SpringSystem对象
+        SpringSystem springSystem = SpringSystem.create();
+        // 添加一个弹簧到系统
+        Spring spring = springSystem.createSpring();
+        //设置弹簧属性参数，如果不设置将使用默认值
+        //两个参数分别是弹力系数和阻力系数
+        spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(1, 1));
+
         viewDragHelper = viewDragHelper.create(this, 1, new ViewDragHelper.Callback()
         {
             @Override
             public boolean tryCaptureView(View child, int pointerId)
             {
-                mView = child;
-                return true;
+                if((int)child.getTag()==getChildCount()-1)
+                {
+                   // mView = child;
+                    return true;
+                }
+                Log.d("data","======================="+pointerId);
+                return false;
             }
 
             @Override
@@ -169,7 +196,7 @@ public class ViewGragHelpGroup extends ViewGroup
             }
 
             @Override
-            public void onViewPositionChanged(View changedView, int left, int top, int dx, int dy)
+            public void onViewPositionChanged(final View changedView, int left, int top, int dx, int dy)
             {
                 super.onViewPositionChanged(changedView, left, top, dx, dy);
                 tempDistance = tempDistance + dy;
@@ -184,18 +211,18 @@ public class ViewGragHelpGroup extends ViewGroup
                     {
                         isScreen = false;
                         isReturn = true;
-                        mView.animate().translationYBy(getMeasuredHeight()).alpha(1.0f).setDuration(300).start();
+                        changedView.animate().translationYBy(getMeasuredHeight()).alpha(1.0f).setDuration(200).setInterpolator(new LinearInterpolator()).start();
                         new android.os.Handler().postDelayed(new Runnable()
                         {
                             @Override
                             public void run()
                             {
-                                removeView(mView);
+                                removeView(changedView);
                                 tempDistance = 0;
                                 requestLayout();
                                 isReturn = false;
                             }
-                        }, 300);
+                        }, 200);
                     }
                 }
             }
@@ -241,11 +268,27 @@ public class ViewGragHelpGroup extends ViewGroup
         int index = totallCount - childCount;
         for (int i = 0; i < getChildCount(); i++)
         {
-            View childView = getChildAt(i);
+           final View childView = getChildAt(i);
             float scalex = 0;
-            scalex = (((i + index) * 1.0f) / count + baseScale);
-            childView.animate().scaleX(scalex).translationY(-index*itemBaseDistance).setDuration(200).setInterpolator(new LinearInterpolator()).start();
+            if(i==getChildCount()-1)
+            {
+                childView.setOnTouchListener(new OnTouchListener()
+                {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent)
+                    {
+                        viewDragHelper.processTouchEvent(motionEvent);
+                        return false;
+                    }
+                });
 
+            }else
+            {
+                childView.setClickable(false);
+            }
+
+            scalex = (((i + index) * 1.0f) / count + baseScale);
+            childView.animate().scaleX(scalex).translationY(-index*itemBaseDistance).setDuration(200).setInterpolator(new HesitateInterpolator()).start();
             childView.layout(0, (beasDistance - i * itemBaseDistance), childView.getMeasuredWidth(), childView.getMeasuredHeight() + (beasDistance - i * itemBaseDistance));
             currentPostion = i;
         }
