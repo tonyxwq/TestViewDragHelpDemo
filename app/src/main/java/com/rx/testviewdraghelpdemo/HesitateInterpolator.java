@@ -15,8 +15,8 @@ public class HesitateInterpolator implements Interpolator
 
     @Override
     public float getInterpolation(float input) {
-        float x = 2.0f * input - 0.8f;
-        return 0.5f * (x * x * x + 1.0f);
+        float x = 2.0f * input - 0.85f;
+        return 0.4f * (x * x * x + 1.0f);
     }
 }
 

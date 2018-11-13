@@ -37,11 +37,12 @@ public class MainActivity extends AppCompatActivity
         {
             View view = this.getLayoutInflater().inflate(R.layout.card_item, null);
             ImageView imageView=view.findViewById(R.id.maskView);
-            Glide.with(MainActivity.this).load(images[i]).into(imageView);
+            Glide.with(MainActivity.this).load(images[0]).into(imageView);
             ViewGroup.LayoutParams params=new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.width=width;
             params.height=heig/2;
             view.setLayoutParams(params);
+            view.setTag(i);
             viewGragHelpGroup.addView(view);
         }
     }

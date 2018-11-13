@@ -33,6 +33,8 @@ import com.facebook.rebound.SpringSystem;
 
 public class ViewGragHelpGroup extends ViewGroup
 {
+    private boolean isFirstComing;
+
     private ViewDragHelper viewDragHelper;
 
     private int currentPostion;//当前最上层的卡片
@@ -79,17 +81,19 @@ public class ViewGragHelpGroup extends ViewGroup
         //两个参数分别是弹力系数和阻力系数
         spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(1, 1));
 
+        isFirstComing = true;
+
         viewDragHelper = viewDragHelper.create(this, 1, new ViewDragHelper.Callback()
         {
             @Override
             public boolean tryCaptureView(View child, int pointerId)
             {
-                if((int)child.getTag()==getChildCount()-1)
+                if ((int) child.getTag() == getChildCount() - 1)
                 {
-                   // mView = child;
+                    // mView = child;
                     return true;
                 }
-                Log.d("data","======================="+pointerId);
+                Log.d("data", "=======================" + pointerId);
                 return false;
             }
 
@@ -256,43 +260,21 @@ public class ViewGragHelpGroup extends ViewGroup
         measureChildren(widthMeasureSpec, heightMeasureSpec);
     }
 
-       /* ===0.9
-        11-12 14:04:40.488 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============0.95555556
-        11-12 14:04:40.506 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.0111111
-        11-12 14:04:40.510 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.0666666
-        11-12 14:04:40.514 3510-3510/com.rx.testviewdraghelpdemo D/data: ==============1.1222222*/
-
     @Override
     protected void onLayout(boolean change, int left, int top, int right, int button)
     {
         int index = totallCount - childCount;
         for (int i = 0; i < getChildCount(); i++)
         {
-           final View childView = getChildAt(i);
-            float scalex = 0;
-            if(i==getChildCount()-1)
-            {
-                childView.setOnTouchListener(new OnTouchListener()
-                {
-                    @Override
-                    public boolean onTouch(View view, MotionEvent motionEvent)
-                    {
-                        viewDragHelper.processTouchEvent(motionEvent);
-                        return false;
-                    }
-                });
-
-            }else
-            {
-                childView.setClickable(false);
-            }
-
-            scalex = (((i + index) * 1.0f) / count + baseScale);
-            childView.animate().scaleX(scalex).translationY(-index*itemBaseDistance).setDuration(200).setInterpolator(new HesitateInterpolator()).start();
+            final View childView = getChildAt(i);
+            float scalex = (((i + index) * 1.0f) / count + baseScale);
+            //childView.animate().scaleX(scalex).translationY(-index * itemBaseDistance).setDuration(100).setInterpolator(new LinearInterpolator()).start();
+            childView.animate().scaleX(scalex).translationY(-index * itemBaseDistance).setDuration(150).setInterpolator(new HesitateInterpolator()).start();
             childView.layout(0, (beasDistance - i * itemBaseDistance), childView.getMeasuredWidth(), childView.getMeasuredHeight() + (beasDistance - i * itemBaseDistance));
             currentPostion = i;
         }
     }
+
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev)
